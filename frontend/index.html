@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retail Autopsy Engine</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-layout">
+  <header class="header">
+    <div class="header-logo">
+      <div class="header-logo-icon"></div>
+      <div class="header-logo-text">RETAIL<br>AUTOPSY</div>
+    </div>
+    <div class="header-markets" id="market-tickers">
+      <div class="market-ticker"><span class="market-ticker-symbol">BTC</span><span class="market-ticker-price" id="btc-price">-</span><span class="market-ticker-change" id="btc-change">-</span></div>
+      <div class="market-ticker"><span class="market-ticker-symbol">ETH</span><span class="market-ticker-price" id="eth-price">-</span><span class="market-ticker-change" id="eth-change">-</span></div>
+      <div class="market-ticker"><span class="market-ticker-symbol">SOL</span><span class="market-ticker-price" id="sol-price">-</span><span class="market-ticker-change" id="sol-change">-</span></div>
+    </div>
+    <div class="header-right">
+      <div class="fear-greed-badge" id="fear-greed-badge">F&G: -</div>
+      <div class="live-indicator"><div class="live-dot"></div><span>LIVE</span></div>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Navigation</div>
+      <div class="nav-item active" data-page="dashboard"><span class="nav-icon">+</span> Dashboard</div>
+      <div class="nav-item" data-page="feed"><span class="nav-icon">+</span> Liquidation Feed</div>
+      <div class="nav-item" data-page="graveyard"><span class="nav-icon">+</span> Pattern Graveyard</div>
+      <div class="nav-item" data-page="scanner"><span class="nav-icon">+</span> Risk Scanner</div>
+      <div class="nav-item" data-page="docs"><span class="nav-icon">+</span> API Docs</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">System</div>
+      <div class="status-item"><span class="status-label">DB EVENTS</span><span class="status-value" id="sidebar-db-count">-</span></div>
+      <div class="status-item"><span class="status-label">LAST SYNC</span><span class="status-value" id="sidebar-last-sync">-</span></div>
+      <div class="status-item"><span class="status-label">API QUERIES</span><span class="status-value" id="sidebar-api-queries">-</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Symbols</div>
+      <div class="symbol-list">
+        <div class="symbol-tag">BTC/USDT</div><div class="symbol-tag">ETH/USDT</div><div class="symbol-tag">SOL/USDT</div><div class="symbol-tag">BNB/USDT</div><div class="symbol-tag">XRP/USDT</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page active" id="page-dashboard">
+      <div><div class="page-title">Liquidation Intelligence</div><div class="page-subtitle">Historical pattern analysis . Real-time regime tagging . Pre-trade risk scoring</div></div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Liquidations Analyzed</div><div class="stat-value" id="stat-total">-</div><div class="stat-sub">Last 90 days . All symbols</div></div>
+        <div class="stat-card"><div class="stat-label">Volume Liquidated</div><div class="stat-value" id="stat-volume">-</div><div class="stat-sub">Total USD across all events</div></div>
+        <div class="stat-card"><div class="stat-label">Most Dangerous Setup</div><div class="stat-value compact-stat" id="stat-dangerous">-</div><div class="stat-sub">By frequency</div></div>
+        <div class="stat-card"><div class="stat-label">API Queries Today</div><div class="stat-value" id="stat-queries">-</div><div class="stat-sub">Risk score requests</div></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card"><div class="chart-title">The Killing Hours - Liquidation Volume by UTC Hour</div><canvas id="chart-hours" height="160"></canvas></div>
+        <div class="chart-card"><div class="chart-title">Regime Breakdown</div><canvas id="chart-regime" height="160"></canvas></div>
+      </div>
+      <div class="data-table-wrapper">
+        <div class="data-table-header"><div class="section-label">Top Liquidated Symbols</div></div>
+        <table><thead><tr><th>Symbol</th><th>Total Liqd</th><th>Volume (USD)</th><th>Long %</th><th>Short %</th><th>Most Dangerous Regime</th><th>Risk Level</th></tr></thead><tbody id="symbols-table-body"></tbody></table>
+      </div>
+    </div>
+
+    <div class="page" id="page-feed">
+      <div><div class="page-title">Liquidation Feed</div><div class="page-subtitle">Live liquidation events . Auto-refreshes every 60s</div></div>
+      <div class="data-table-wrapper">
+        <div class="filter-bar">
+          <span class="filter-label">Symbol</span><select id="feed-symbol"><option value="">ALL</option><option value="BTCUSDT">BTC/USDT</option><option value="ETHUSDT">ETH/USDT</option><option value="SOLUSDT">SOL/USDT</option><option value="BNBUSDT">BNB/USDT</option><option value="XRPUSDT">XRP/USDT</option></select>
+          <span class="filter-label">Side</span><select id="feed-side"><option value="">ALL</option><option value="long">LONG</option><option value="short">SHORT</option></select>
+          <span class="filter-label">Regime</span><select id="feed-regime"><option value="">ALL</option><option value="trending_bull">TRENDING BULL</option><option value="trending_bear">TRENDING BEAR</option><option value="ranging">RANGING</option><option value="volatile">VOLATILE</option><option value="crash">CRASH</option><option value="unknown">UNKNOWN</option></select>
+        </div>
+        <table><thead><tr><th>Time</th><th>Symbol</th><th>Side</th><th>Size (USD)</th><th>Leverage</th><th>Price</th><th>Regime</th><th>Funding</th><th>RSI</th></tr></thead><tbody id="feed-table-body"></tbody></table>
+        <div class="pagination" id="feed-pagination"></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-graveyard">
+      <div><div class="page-title">The Pattern Graveyard</div><div class="page-subtitle">Most recurring liquidation patterns in history . These killed retail. Repeatedly.</div></div>
+      <div class="graveyard-grid" id="graveyard-grid"></div>
+    </div>
+
+    <div class="page" id="page-scanner">
+      <div><div class="page-title">Risk Scanner</div><div class="page-subtitle">Pre-trade liquidation probability . Historical pattern matching</div></div>
+      <div class="scanner-layout">
+        <div class="scanner-panel">
+          <div class="scanner-panel-title">Trade Autopsy Request</div>
+          <div class="form-group"><label class="form-label">Symbol</label><select class="form-input" id="scan-symbol"><option value="BTCUSDT">BTC/USDT</option><option value="ETHUSDT">ETH/USDT</option><option value="SOLUSDT">SOL/USDT</option><option value="BNBUSDT">BNB/USDT</option><option value="XRPUSDT">XRP/USDT</option></select></div>
+          <div class="form-group"><label class="form-label">Side</label><div class="side-toggle"><button class="side-btn active-long" id="side-long" type="button">LONG</button><button class="side-btn" id="side-short" type="button">SHORT</button></div></div>
+          <div class="form-group"><label class="form-label">Leverage</label><div class="leverage-input-row"><button class="leverage-btn" id="lev-down" type="button">-</button><input class="form-input" type="number" id="scan-leverage" value="10" min="1" max="125"><button class="leverage-btn" id="lev-up" type="button">+</button></div></div>
+          <div class="form-group"><label class="form-label">Funding Rate (%)</label><input class="form-input" type="number" id="scan-funding" placeholder="e.g. 0.031" step="0.001"></div>
+          <div class="form-group"><label class="form-label">RSI (14)</label><input class="form-input" type="number" id="scan-rsi" placeholder="e.g. 71.4" step="0.1" min="0" max="100"></div>
+          <div class="form-group"><label class="form-label">Fear & Greed Index</label><input class="form-input" type="number" id="scan-fg" placeholder="0-100" min="0" max="100"></div>
+          <div class="form-group"><label class="form-label">Long/Short Ratio</label><input class="form-input" type="number" id="scan-ls" placeholder="e.g. 1.24" step="0.01"></div>
+          <button class="submit-btn" id="scan-submit" type="button">RUN AUTOPSY</button>
+        </div>
+        <div class="scanner-panel" id="report-panel"><div class="scanner-panel-title">Autopsy Report</div><div id="report-content"><div class="report-placeholder"><div class="report-placeholder-icon">+</div><div class="report-placeholder-text">Awaiting Input</div><div class="report-placeholder-sub">Submit a trade setup to receive your liquidation probability assessment</div></div></div></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-docs">
+      <div><div class="page-title">API Reference</div><div class="page-subtitle">Integrate the risk intelligence layer into your trading agent</div></div>
+      <div class="api-base-url">BASE URL: <strong>http://localhost:8000</strong> . All endpoints return JSON . CORS enabled . No authentication required</div>
+      <div id="api-docs-content"></div>
+    </div>
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
