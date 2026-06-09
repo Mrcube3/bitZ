@@ -244,3 +244,4 @@ retail-autopsy-engine/
 
 The problem: trading agents execute thousands of setups, but they lack operational memory of what gets liquidated. This engine fills that gap — a lightweight, self-contained intelligence layer that any agent can query.
 # bitZ
+# bitZ
