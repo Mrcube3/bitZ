@@ -1,4 +1,4 @@
-const API = 'http://localhost:8000';
+const API = '';
 let currentPage = 'dashboard';
 let feedPage = 0;
 let selectedSide = 'long';
@@ -356,14 +356,17 @@ function typeText(el, text) {
 }
 
 function initDocs() {
+  const base = window.location.origin;
+  $('api-base-url').textContent = base;
+  const curl = (path) => `curl ${base}${path}`;
   const endpoints = [
-    ['GET', '/health', 'Runtime heartbeat and event count.', 'curl http://localhost:8000/health', '{"status":"ok","version":"1.0.0","db_events":1500}'],
-    ['POST', '/api/v1/risk-score', 'Score a proposed trade against historical liquidation patterns.', 'curl -X POST http://localhost:8000/api/v1/risk-score -H "Content-Type: application/json" -d \'{"symbol":"BTCUSDT","side":"long","leverage":20,"funding_rate":0.035,"rsi":74,"fear_greed":82}\'', '{"symbol":"BTCUSDT","side":"long","leverage":20,"liquidation_probability":0.41,"confidence":"medium","similar_events_found":38,"median_time_to_liquidation_hours":2.7,"worst_case_hours":0.12,"top_risk_factors":["Extreme leverage (20x+) - top liquidation tier"],"regime_warning":"Current regime resembles crash conditions; leveraged long entries are historically fragile.","verdict":"Historical autopsy finds a 41% liquidation probability..."}'],
-    ['GET', '/api/v1/liquidations', 'Filterable liquidation event feed.', 'curl "http://localhost:8000/api/v1/liquidations?symbol=BTCUSDT&side=long&limit=5"', '[{"id":1,"timestamp":"2026-06-01T12:00:00+00:00","symbol":"BTCUSDT","side":"long","size_usd":18450.22,"leverage":18,"price":94321.5,"regime":"volatile","funding_rate":0.041,"rsi_at_event":72.1,"fear_greed_at_event":78}]'],
-    ['GET', '/api/v1/liquidations/clusters', 'Regime and side cluster summaries.', 'curl http://localhost:8000/api/v1/liquidations/clusters', '[{"regime":"volatile","side":"long","total_liquidations":214,"avg_leverage":14.2,"avg_funding_rate":0.044,"avg_rsi":61.4,"avg_size_usd":7820.4,"pct_of_total":0.1427}]'],
-    ['GET', '/api/v1/liquidations/patterns', 'Top recurring liquidation patterns.', 'curl http://localhost:8000/api/v1/liquidations/patterns', '[{"rank":1,"regime":"crash","side":"long","leverage_bucket":"10-20x","avg_funding":-0.052,"avg_rsi":21.2,"count":96,"pct_of_total":0.064,"insight":"Buying the dip with leverage during a crash. Never works."}]'],
-    ['GET', '/api/v1/regime/BTCUSDT', 'Current market regime snapshot for a symbol.', 'curl http://localhost:8000/api/v1/regime/BTCUSDT', '{"symbol":"BTCUSDT","regime":"volatile","rsi":68.3,"macd_signal":"bullish","funding_rate":0.028,"fear_greed":74,"long_short_ratio":1.18}'],
-    ['GET', '/api/v1/stats', 'Dashboard totals, charts, and symbol leaderboard.', 'curl http://localhost:8000/api/v1/stats', '{"total_count":1500,"total_volume_usd":10942231.4,"api_queries_today":4,"top_symbols":[],"by_regime":{"volatile":310},"by_hour":[0,12000,88000]}'],
+    ['GET', '/health', 'Runtime heartbeat and event count.', curl('/health'), '{"status":"ok","version":"1.0.0","db_events":1500}'],
+    ['POST', '/api/v1/risk-score', 'Score a proposed trade against historical liquidation patterns.', `curl -X POST ${base}/api/v1/risk-score -H "Content-Type: application/json" -d '{"symbol":"BTCUSDT","side":"long","leverage":20,"funding_rate":0.035,"rsi":74,"fear_greed":82}'`, '{"symbol":"BTCUSDT","side":"long","leverage":20,"liquidation_probability":0.41,"confidence":"medium","similar_events_found":38,"median_time_to_liquidation_hours":2.7,"worst_case_hours":0.12,"top_risk_factors":["Extreme leverage (20x+) - top liquidation tier"],"regime_warning":"Current regime resembles crash conditions; leveraged long entries are historically fragile.","verdict":"Historical autopsy finds a 41% liquidation probability..."}'],
+    ['GET', '/api/v1/liquidations', 'Filterable liquidation event feed.', `curl "${base}/api/v1/liquidations?symbol=BTCUSDT&side=long&limit=5"`, '[{"id":1,"timestamp":"2026-06-01T12:00:00+00:00","symbol":"BTCUSDT","side":"long","size_usd":18450.22,"leverage":18,"price":94321.5,"regime":"volatile","funding_rate":0.041,"rsi_at_event":72.1,"fear_greed_at_event":78}]'],
+    ['GET', '/api/v1/liquidations/clusters', 'Regime and side cluster summaries.', curl('/api/v1/liquidations/clusters'), '[{"regime":"volatile","side":"long","total_liquidations":214,"avg_leverage":14.2,"avg_funding_rate":0.044,"avg_rsi":61.4,"avg_size_usd":7820.4,"pct_of_total":0.1427}]'],
+    ['GET', '/api/v1/liquidations/patterns', 'Top recurring liquidation patterns.', curl('/api/v1/liquidations/patterns'), '[{"rank":1,"regime":"crash","side":"long","leverage_bucket":"10-20x","avg_funding":-0.052,"avg_rsi":21.2,"count":96,"pct_of_total":0.064,"insight":"Buying the dip with leverage during a crash. Never works."}]'],
+    ['GET', '/api/v1/regime/BTCUSDT', 'Current market regime snapshot for a symbol.', curl('/api/v1/regime/BTCUSDT'), '{"symbol":"BTCUSDT","regime":"volatile","rsi":68.3,"macd_signal":"bullish","funding_rate":0.028,"fear_greed":74,"long_short_ratio":1.18}'],
+    ['GET', '/api/v1/stats', 'Dashboard totals, charts, and symbol leaderboard.', curl('/api/v1/stats'), '{"total_count":1500,"total_volume_usd":10942231.4,"api_queries_today":4,"top_symbols":[],"by_regime":{"volatile":310},"by_hour":[0,12000,88000]}'],
   ];
   $('api-docs-content').innerHTML = endpoints.map(([method, path, desc, curl, response], i) => `
     <div class="endpoint-card">

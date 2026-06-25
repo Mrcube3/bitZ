@@ -4,7 +4,11 @@ from datetime import datetime, timezone
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "data", "autopsy.db"))
+IS_VERCEL = os.environ.get("VERCEL") == "1"
+if IS_VERCEL:
+    DB_PATH = "/tmp/autopsy.db"
+else:
+    DB_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "data", "autopsy.db"))
 
 
 def get_db():
